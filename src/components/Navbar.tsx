@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, Search, Menu as MenuIcon, X, MapPin, Coffee, Utensils, Clock, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, Menu as MenuIcon, X, MapPin, Coffee, Utensils, Clock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
@@ -44,12 +44,6 @@ export default function Navbar() {
             <span className="hidden sm:flex items-center gap-1 text-[11px] text-zinc-400">
               <Clock className="w-3 h-3 text-[#e8959d]" /> 9:00 AM – 10:00 PM
             </span>
-            <Link
-              href="/admin"
-              className="text-[11px] text-[#f4c2c2] hover:text-white flex items-center gap-1 pl-2.5 border-l border-zinc-800 transition-colors"
-            >
-              <ShieldCheck className="w-3 h-3 text-[#e8959d]" /> Staff
-            </Link>
           </div>
         </div>
       </div>
@@ -96,13 +90,6 @@ export default function Navbar() {
               );
             })}
 
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#881337] bg-gradient-to-r from-[#fce7e9] to-[#fce7e9]/60 hover:from-[#f4c2c2] hover:to-[#e8959d] hover:text-[#18181b] transition-all border border-[#e8959d]/40 ml-1 shadow-xs"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin</span>
-            </Link>
           </nav>
 
           {/* Action buttons (Search & Cart) */}
@@ -169,15 +156,8 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <div className="pt-3 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500">
+          <div className="pt-3 border-t border-zinc-100 text-xs text-zinc-500">
             <span>Amity University Jaipur</span>
-            <Link
-              href="/admin/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="font-bold text-[#881337] bg-[#fce7e9] px-3 py-1.5 rounded-full"
-            >
-              Staff Portal
-            </Link>
           </div>
         </div>
       )}

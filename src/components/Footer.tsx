@@ -87,16 +87,6 @@ export default function Footer() {
                   View Physical Menu Board <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
-              <li>
-                <Link href="/admin/kitchen" className="hover:text-white transition-colors">
-                  Kitchen Display System (KDS)
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-white transition-colors">
-                  Admin & Staff Portal
-                </Link>
-              </li>
             </ul>
           </div>
 

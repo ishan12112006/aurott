@@ -9,6 +9,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
     "canvas-confetti": "^1.9.4",
