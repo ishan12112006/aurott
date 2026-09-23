@@ -509,6 +509,26 @@ export async function updateOrderStatus(orderNumber: string, status: OrderStatus
   loadLocalState();
   const cleanOrderNum = orderNumber.trim().toUpperCase();
 
+  if (typeof window !== 'undefined' && isSupabaseConfigured) {
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(cleanOrderNum)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '',
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.ok) return true;
+      console.warn('Order status API update failed:', await response.text());
+      return false;
+    } catch (err) {
+      console.warn('Order status API update failed:', err);
+      return false;
+    }
+  }
+
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
