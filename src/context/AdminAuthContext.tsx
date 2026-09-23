@@ -70,18 +70,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 2. Default Campus Admin Passcode authentication
-    // Configured password is 'ishan@123456789'
-    const allowedPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'ishan@123456789';
+    const configuredPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD?.trim();
     const cleanPass = (password || '').trim();
-    const cleanAllowed = (allowedPassword || 'ishan@123456789').trim();
 
-    if (
-      cleanPass === cleanAllowed ||
-      cleanPass === 'ishan@123456789' ||
-      cleanPass.toLowerCase() === 'ishan@123456789' ||
-      cleanPass.toLowerCase() === cleanAllowed.toLowerCase()
-    ) {
+    if (!configuredPassword) {
+      return { success: false, message: 'Admin passcode is not configured. Set NEXT_PUBLIC_ADMIN_PASSWORD in your environment.' };
+    }
+
+    if (cleanPass === configuredPassword) {
       setIsAdmin(true);
       const emailToUse = (email || 'admin@ottcafe.amity.edu').trim();
       setAdminEmail(emailToUse);

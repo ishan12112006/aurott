@@ -1,6 +1,15 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { INITIAL_CATEGORIES, INITIAL_MENU_ITEMS, DEFAULT_CAFE_SETTINGS } from '@/data/menuData';
-import { Category, MenuItem, Order, OrderStatus, OrderItemSnapshot, AnalyticsSummary } from '@/types';
+import {
+  Category,
+  MenuItem,
+  Order,
+  OrderStatus,
+  OrderItemSnapshot,
+  AnalyticsSummary,
+  CafeSettings,
+  MenuOption,
+} from '@/types';
 
 // In-memory / browser fallback store for seamless offline/local demonstration
 let localOrders: Order[] = [
@@ -78,6 +87,30 @@ let localOrders: Order[] = [
 
 let localMenuItems: MenuItem[] = [...INITIAL_MENU_ITEMS];
 let localCategories: Category[] = [...INITIAL_CATEGORIES];
+let localCafeSettings: CafeSettings = { ...DEFAULT_CAFE_SETTINGS };
+
+const resolveOptionPrice = (item: MenuItem, selectedOption?: string): number => {
+  if (!selectedOption) return item.price;
+
+  const optionList = item.options ?? [];
+  const matchedOption = optionList.find((option) => {
+    const label = typeof option === 'string' ? option : option.label;
+    return label.toLowerCase() === selectedOption.toLowerCase();
+  });
+
+  if (typeof matchedOption === 'object' && typeof matchedOption.price === 'number') {
+    return matchedOption.price;
+  }
+
+  if (typeof matchedOption === 'string') {
+    const parsed = matchedOption.match(/₹?\s*(\d+(?:\.\d+)?)/);
+    if (parsed) {
+      return Number(parsed[1]);
+    }
+  }
+
+  return item.price;
+};
 
 // Helper to persist/load in browser localStorage
 const loadLocalState = () => {
@@ -91,6 +124,10 @@ const loadLocalState = () => {
     if (savedItems) {
       localMenuItems = JSON.parse(savedItems);
     }
+    const savedSettings = localStorage.getItem('ott_cafe_settings');
+    if (savedSettings) {
+      localCafeSettings = { ...DEFAULT_CAFE_SETTINGS, ...JSON.parse(savedSettings) };
+    }
   } catch (err) {
     console.error('Error loading localStorage state', err);
   }
@@ -101,6 +138,7 @@ const saveLocalState = () => {
   try {
     localStorage.setItem('ott_orders', JSON.stringify(localOrders));
     localStorage.setItem('ott_menu_items', JSON.stringify(localMenuItems));
+    localStorage.setItem('ott_cafe_settings', JSON.stringify(localCafeSettings));
   } catch (err) {
     console.error('Error saving localStorage state', err);
   }
@@ -108,6 +146,18 @@ const saveLocalState = () => {
 
 if (typeof window !== 'undefined') {
   loadLocalState();
+}
+
+export async function getCafeSettings(): Promise<CafeSettings> {
+  loadLocalState();
+  return { ...localCafeSettings };
+}
+
+export async function updateCafeSettings(nextSettings: Partial<CafeSettings>): Promise<CafeSettings> {
+  loadLocalState();
+  localCafeSettings = { ...localCafeSettings, ...nextSettings };
+  saveLocalState();
+  return { ...localCafeSettings };
 }
 
 /**
@@ -226,7 +276,7 @@ export async function createOrder(payload: {
       throw new Error(`Invalid quantity for: ${item.name}`);
     }
 
-    const unitPrice = item.price;
+    const unitPrice = resolveOptionPrice(item, requestedItem.selectedOption);
     const itemSubtotal = unitPrice * requestedItem.quantity;
     subtotal += itemSubtotal;
 

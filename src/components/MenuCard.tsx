@@ -12,12 +12,32 @@ interface MenuCardProps {
 
 export default function MenuCard({ item }: MenuCardProps) {
   const { addToCart, updateQuantity, getItemQuantity } = useCart();
-  const [selectedOption, setSelectedOption] = useState<string | undefined>(
-    item.options && item.options.length > 0 ? item.options[0] : undefined
-  );
+  const optionLabels = (item.options ?? []).map((opt) => (typeof opt === 'string' ? opt : opt.label));
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(optionLabels[0]);
   const [imageError, setImageError] = useState(false);
 
   const currentQuantity = getItemQuantity(item.id, selectedOption);
+
+  const resolveOptionPrice = (optionLabel?: string) => {
+    if (!optionLabel) return item.price;
+    const matched = item.options?.find((opt) => {
+      const label = typeof opt === 'string' ? opt : opt.label;
+      return label.toLowerCase() === optionLabel.toLowerCase();
+    });
+
+    if (matched && typeof matched !== 'string' && typeof matched.price === 'number') {
+      return matched.price;
+    }
+
+    if (typeof matched === 'string') {
+      const parsed = matched.match(/₹?\s*(\d+(?:\.\d+)?)/);
+      if (parsed) return Number(parsed[1]);
+    }
+
+    return item.price;
+  };
+
+  const displayPrice = resolveOptionPrice(selectedOption);
 
   const handleAdd = () => {
     if (!item.isAvailable) return;
@@ -118,11 +138,11 @@ export default function MenuCard({ item }: MenuCardProps) {
           </p>
 
           {/* Option Selector (e.g. Manchurian Dry / Gravy) */}
-          {item.options && item.options.length > 0 && (
+          {optionLabels.length > 0 && (
             <div className="mb-3 flex items-center gap-2">
               <span className="text-[11px] font-bold text-zinc-400">Choice:</span>
               <div className="flex flex-wrap gap-1.5">
-                {item.options.map((opt) => (
+                {optionLabels.map((opt) => (
                   <button
                     key={opt}
                     type="button"
@@ -147,9 +167,9 @@ export default function MenuCard({ item }: MenuCardProps) {
         <div>
           <div className="flex items-baseline gap-1">
             <span className="text-xl sm:text-2xl font-black text-zinc-950 tracking-tight">
-              ₹{item.price}
+              ₹{displayPrice}
             </span>
-            {item.secondaryPrice && (
+            {item.secondaryPrice && !selectedOption && (
               <span className="text-xs text-zinc-500 font-semibold">
                 / ₹{item.secondaryPrice}
               </span>

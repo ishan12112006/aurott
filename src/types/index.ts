@@ -10,6 +10,8 @@ export interface Category {
   isActive: boolean;
 }
 
+export type MenuOption = string | { label: string; price?: number };
+
 export interface MenuItem {
   id: string;
   categoryId: string;
@@ -26,7 +28,7 @@ export interface MenuItem {
   isFeatured: boolean;
   sortOrder: number;
   portionNote?: string; // e.g. "8 pcs", "6 pcs"
-  options?: string[]; // e.g. ["Dry", "Gravy"] for Manchurian
+  options?: MenuOption[]; // e.g. ["Dry", "Gravy"] or [{label:"Regular", price:20}, ...]
 }
 
 export interface CartItem {
@@ -86,6 +88,7 @@ export interface CafeSettings {
   upiId: string;
   pickupInstructions: string;
   isAcceptingOrders: boolean;
+  logoUrl?: string;
 }
 
 export interface AnalyticsSummary {

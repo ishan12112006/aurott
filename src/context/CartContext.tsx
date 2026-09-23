@@ -53,6 +53,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = (menuItem: MenuItem, selectedOption?: string) => {
     if (!menuItem.isAvailable) return;
 
+    const selectedPrice = (() => {
+      if (!selectedOption) return menuItem.price;
+      const matched = menuItem.options?.find((opt) => {
+        const label = typeof opt === 'string' ? opt : opt.label;
+        return label.toLowerCase() === selectedOption.toLowerCase();
+      });
+
+      if (matched && typeof matched !== 'string' && typeof matched.price === 'number') {
+        return matched.price;
+      }
+
+      if (typeof matched === 'string') {
+        const parsed = matched.match(/₹?\s*(\d+(?:\.\d+)?)/);
+        if (parsed) return Number(parsed[1]);
+      }
+
+      return menuItem.price;
+    })();
+
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (ci) => ci.menuItem.id === menuItem.id && ci.selectedOption === selectedOption
@@ -63,6 +82,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         next[existingIndex] = {
           ...next[existingIndex],
           quantity: next[existingIndex].quantity + 1,
+          selectedPrice,
         };
         return next;
       } else {
@@ -72,7 +92,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             menuItem,
             quantity: 1,
             selectedOption,
-            selectedPrice: menuItem.price,
+            selectedPrice,
           },
         ];
       }

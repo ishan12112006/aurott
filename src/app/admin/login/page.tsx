@@ -3,19 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff, KeyRound, Check } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { login, isAdmin, isLoading } = useAdminAuth();
 
-  const [email, setEmail] = useState('admin@ottcafe.amity.edu');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(false);
 
   // If already logged in, redirect to admin safely in useEffect
   useEffect(() => {
@@ -41,13 +40,6 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAutofillDefault = () => {
-    setPassword('ishan@123456789');
-    setEmail('admin@ottcafe.amity.edu');
-    setCopiedKey(true);
-    setTimeout(() => setCopiedKey(false), 2000);
   };
 
   if (isLoading || isAdmin) {
@@ -105,23 +97,6 @@ export default function AdminLoginPage() {
               <label className="block text-xs font-bold text-zinc-700">
                 Admin Passcode / Key
               </label>
-              <button
-                type="button"
-                onClick={handleAutofillDefault}
-                className="text-[11px] font-bold text-[#881337] hover:underline flex items-center gap-1"
-              >
-                {copiedKey ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-600" />
-                    <span className="text-emerald-600">Autofilled!</span>
-                  </>
-                ) : (
-                  <>
-                    <KeyRound className="w-3 h-3" />
-                    <span>Autofill Passcode</span>
-                  </>
-                )}
-              </button>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -143,17 +118,8 @@ export default function AdminLoginPage() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <div className="mt-2 p-2 bg-amber-50/80 border border-amber-200/60 rounded-xl flex items-center justify-between gap-2">
-              <span className="text-[11px] text-amber-900">
-                Default Passcode: <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-bold">ishan@123456789</code>
-              </span>
-              <button
-                type="button"
-                onClick={handleAutofillDefault}
-                className="text-[10px] font-bold bg-white text-zinc-800 px-2 py-1 rounded-lg border border-amber-200 hover:bg-amber-100/50 shadow-xs"
-              >
-                Use this
-              </button>
+            <div className="mt-2 p-2 bg-amber-50/80 border border-amber-200/60 rounded-xl text-[11px] text-amber-900">
+              Contact the site owner to confirm the current admin passcode. It is not stored in the public app.
             </div>
           </div>
 

@@ -1555,4 +1555,5 @@ export const DEFAULT_CAFE_SETTINGS: CafeSettings = {
   upiId: 'ottcafe@upi',
   pickupInstructions: 'Pick up your order fresh and hot at the OTT Cafe counter inside campus.',
   isAcceptingOrders: true,
+  logoUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80',
 };

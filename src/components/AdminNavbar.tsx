@@ -11,6 +11,7 @@ import {
   BarChart3,
   ExternalLink,
   LogOut,
+  Settings,
 } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 
@@ -24,6 +25,7 @@ export default function AdminNavbar() {
     { label: 'Menu Manager', href: '/admin/menu', icon: UtensilsCrossed },
     { label: 'Order History', href: '/admin/orders', icon: ClipboardList },
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Website Settings', href: '/admin/settings', icon: Settings },
   ];
 
   return (

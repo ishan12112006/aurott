@@ -40,13 +40,17 @@ function TrackOrderContent() {
   // Fetch function
   const fetchOrder = async (orderNum: string, phone?: string) => {
     if (!orderNum.trim()) return;
+    if (!phone?.trim()) {
+      setErrorMsg('Phone number is required to track your order.');
+      setOrder(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
 
     try {
-      const url = `/api/orders/${orderNum.trim().toUpperCase()}${
-        phone ? `?phone=${phone.trim()}` : ''
-      }`;
+      const url = `/api/orders/${orderNum.trim().toUpperCase()}?phone=${encodeURIComponent(phone.trim())}`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -96,6 +100,11 @@ function TrackOrderContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phoneInput.trim()) {
+      setErrorMsg('Phone number is required to track your order.');
+      setOrder(null);
+      return;
+    }
     fetchOrder(orderNumberInput, phoneInput);
   };
 
@@ -153,10 +162,11 @@ function TrackOrderContent() {
 
           <div>
             <label className="block text-xs font-bold text-zinc-700 mb-1">
-              Phone Number <span className="text-zinc-400 font-normal">(Optional verify)</span>
+              Phone Number <span className="text-red-500 font-normal">Required</span>
             </label>
             <input
               type="tel"
+              required
               placeholder="e.g. 9876543210"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}

@@ -1,15 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, Search, Menu as MenuIcon, X, MapPin, Coffee, Utensils, Clock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { DEFAULT_CAFE_SETTINGS } from '@/data/menuData';
+import { getCafeSettings } from '@/lib/db';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { itemCount, subtotal, setIsCartDrawerOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [siteSettings, setSiteSettings] = useState(DEFAULT_CAFE_SETTINGS);
+
+  useEffect(() => {
+    let isMounted = true;
+    getCafeSettings().then((settings) => {
+      if (isMounted) setSiteSettings(settings);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // If inside /admin, we show AdminNavbar or customized view
   const isAdminRoute = pathname?.startsWith('/admin');
@@ -32,17 +46,17 @@ export default function Navbar() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="font-semibold text-emerald-400 text-[11px] sm:text-xs">
-              Live Counter Open
+              {siteSettings.isAcceptingOrders ? 'Live Counter Open' : 'Currently Closed'}
             </span>
             <span className="text-zinc-500">•</span>
             <span className="inline-flex items-center gap-1 font-medium text-zinc-300 text-[11px] sm:text-xs">
               <MapPin className="w-3 h-3 text-[#e8959d]" />
-              Amity University Jaipur
+              {siteSettings.campus}
             </span>
           </div>
           <div className="flex items-center gap-3 text-zinc-300">
             <span className="hidden sm:flex items-center gap-1 text-[11px] text-zinc-400">
-              <Clock className="w-3 h-3 text-[#e8959d]" /> 9:00 AM – 10:00 PM
+              <Clock className="w-3 h-3 text-[#e8959d]" /> {siteSettings.openingHours}
             </span>
           </div>
         </div>
@@ -53,21 +67,27 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#18181b] border border-[#e8959d]/60 flex flex-col items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-[#e8959d] group-hover:shadow-[0_0_20px_rgba(232,149,157,0.35)]">
-              <span className="text-[7.5px] font-black tracking-widest text-[#e8959d] leading-none mb-0.5">OUT OF</span>
-              <span className="text-xs sm:text-sm font-black tracking-wider leading-none text-white">OTT</span>
-              <span className="text-[6.5px] font-bold text-zinc-400 leading-none mt-0.5">THE TOWN</span>
-            </div>
+            {siteSettings.logoUrl ? (
+              <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden border border-[#e8959d]/60 bg-white shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-[#e8959d] group-hover:shadow-[0_0_20px_rgba(232,149,157,0.35)]">
+                <Image src={siteSettings.logoUrl} alt={siteSettings.cafeName} fill className="object-cover" />
+              </div>
+            ) : (
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#18181b] border border-[#e8959d]/60 flex flex-col items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-[#e8959d] group-hover:shadow-[0_0_20px_rgba(232,149,157,0.35)]">
+                <span className="text-[7.5px] font-black tracking-widest text-[#e8959d] leading-none mb-0.5">OUT OF</span>
+                <span className="text-xs sm:text-sm font-black tracking-wider leading-none text-white">OTT</span>
+                <span className="text-[6.5px] font-bold text-zinc-400 leading-none mt-0.5">THE TOWN</span>
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-[#18181b] group-hover:text-zinc-900 transition-colors">
-                  OTT <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#dc7e87] to-[#881337]">Cafe</span>
+                  {siteSettings.cafeName.split(' ')[0]} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#dc7e87] to-[#881337]">{siteSettings.cafeName.split(' ').slice(1).join(' ') || 'Cafe'}</span>
                 </span>
                 <span className="hidden md:inline-block text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#fce7e9] to-[#f4c2c2]/50 text-[#881337] px-2.5 py-0.5 rounded-full border border-rose-200/50 shadow-xs">
                   Campus
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-500 hidden sm:block font-medium">Amity University Jaipur</p>
+              <p className="text-[11px] text-zinc-500 hidden sm:block font-medium">{siteSettings.campus}</p>
             </div>
           </Link>
 
@@ -157,7 +177,7 @@ export default function Navbar() {
             );
           })}
           <div className="pt-3 border-t border-zinc-100 text-xs text-zinc-500">
-            <span>Amity University Jaipur</span>
+            <span>{siteSettings.campus}</span>
           </div>
         </div>
       )}
