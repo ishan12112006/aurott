@@ -63,7 +63,8 @@ export default function AdminDashboardPage() {
   const handleStatusChange = async (orderNumber: string, newStatus: OrderStatus) => {
     setIsUpdating(orderNumber);
     try {
-      await updateOrderStatus(orderNumber, newStatus);
+      const updated = await updateOrderStatus(orderNumber, newStatus);
+      if (!updated) throw new Error('The order could not be updated. Please reload and try again.');
       await loadOrders();
     } catch (err) {
       console.error('Status change error', err);

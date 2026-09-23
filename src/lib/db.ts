@@ -150,11 +150,85 @@ if (typeof window !== 'undefined') {
 
 export async function getCafeSettings(): Promise<CafeSettings> {
   loadLocalState();
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('cafe_settings')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (!error && data) {
+        return {
+          ...DEFAULT_CAFE_SETTINGS,
+          cafeName: data.cafe_name,
+          tagline: data.tagline,
+          campus: data.campus,
+          locationAddress: data.location_address,
+          phone: data.phone,
+          email: data.email,
+          instagram: data.instagram,
+          openingHours: data.opening_hours,
+          upiId: data.upi_id,
+          pickupInstructions: data.pickup_instructions,
+          isAcceptingOrders: data.is_accepting_orders,
+          copyrightText: data.copyright_text ?? DEFAULT_CAFE_SETTINGS.copyrightText,
+          logoUrl: data.logo_url ?? DEFAULT_CAFE_SETTINGS.logoUrl,
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase settings fetch error, using local fallback:', err);
+    }
+  }
+
   return { ...localCafeSettings };
 }
 
 export async function updateCafeSettings(nextSettings: Partial<CafeSettings>): Promise<CafeSettings> {
   loadLocalState();
+
+  if (isSupabaseConfigured && supabase) {
+    const settings = { ...localCafeSettings, ...nextSettings };
+    try {
+      const { data, error } = await supabase
+        .from('cafe_settings')
+        .upsert({
+          id: 1,
+          cafe_name: settings.cafeName,
+          tagline: settings.tagline,
+          campus: settings.campus,
+          location_address: settings.locationAddress,
+          phone: settings.phone,
+          email: settings.email,
+          instagram: settings.instagram,
+          opening_hours: settings.openingHours,
+          upi_id: settings.upiId,
+          pickup_instructions: settings.pickupInstructions,
+          is_accepting_orders: settings.isAcceptingOrders,
+          copyright_text: settings.copyrightText,
+          logo_url: settings.logoUrl,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (!error && data) {
+        localCafeSettings = settings;
+        saveLocalState();
+        return { ...settings };
+      }
+
+      if (error) {
+        console.warn('Supabase settings update error:', error);
+        throw new Error(error.message || 'Unable to save cafe settings.');
+      }
+    } catch (err) {
+      console.warn('Supabase settings update error:', err);
+      throw err;
+    }
+  }
+
   localCafeSettings = { ...localCafeSettings, ...nextSettings };
   saveLocalState();
   return { ...localCafeSettings };
@@ -437,13 +511,22 @@ export async function updateOrderStatus(orderNumber: string, status: OrderStatus
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('orders')
         .update({
           order_status: status,
           updated_at: new Date().toISOString(),
         })
-        .eq('order_number', cleanOrderNum);
+        .eq('order_number', cleanOrderNum)
+        .select('id')
+        .maybeSingle();
+
+      if (!error && data) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ott_order_status_updated', { detail: { orderNumber: cleanOrderNum, status } }));
+        }
+        return true;
+      }
 
       if (error) {
         console.warn('Supabase status update error:', error);
@@ -524,7 +607,14 @@ export async function toggleItemAvailability(itemId: string, isAvailable: boolea
   loadLocalState();
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('menu_items').update({ is_available: isAvailable }).eq('id', itemId);
+      const { data, error } = await supabase
+        .from('menu_items')
+        .update({ is_available: isAvailable })
+        .eq('id', itemId)
+        .select('id')
+        .maybeSingle();
+      if (!error && data) return true;
+      if (error) console.warn('Supabase availability update error:', error);
     } catch (err) {
       console.warn('Supabase availability update error:', err);
     }
@@ -546,7 +636,14 @@ export async function updateItemPrice(itemId: string, newPrice: number): Promise
   loadLocalState();
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('menu_items').update({ price: newPrice }).eq('id', itemId);
+      const { data, error } = await supabase
+        .from('menu_items')
+        .update({ price: newPrice })
+        .eq('id', itemId)
+        .select('id')
+        .maybeSingle();
+      if (!error && data) return true;
+      if (error) console.warn('Supabase price update error:', error);
     } catch (err) {
       console.warn('Supabase price update error:', err);
     }

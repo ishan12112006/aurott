@@ -26,6 +26,8 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
@@ -44,8 +46,17 @@ export default function AdminOrdersPage() {
   }, [isAdmin]);
 
   const handleStatusChange = async (orderNumber: string, nextStatus: OrderStatus) => {
-    await updateOrderStatus(orderNumber, nextStatus);
-    await loadOrders();
+    setUpdatingOrder(orderNumber);
+    setActionError(null);
+    try {
+      const updated = await updateOrderStatus(orderNumber, nextStatus);
+      if (!updated) throw new Error('The order could not be updated. Please reload and try again.');
+      await loadOrders();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'The order could not be updated.');
+    } finally {
+      setUpdatingOrder(null);
+    }
   };
 
   if (isLoading || !isAdmin) {
@@ -82,6 +93,12 @@ export default function AdminOrdersPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-950">
+
+        {actionError && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800">
+            {actionError}
+          </div>
+        )}
               Orders History & Archives
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 mt-1">
@@ -199,15 +216,17 @@ export default function AdminOrdersPage() {
                           {order.orderStatus === 'PLACED' && (
                             <button
                               onClick={() => handleStatusChange(order.orderNumber, 'ACCEPTED')}
-                              className="text-xs font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg hover:bg-indigo-100"
+                              disabled={updatingOrder === order.orderNumber}
+                              className="text-xs font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg hover:bg-indigo-100 disabled:opacity-50"
                             >
-                              Accept
+                              {updatingOrder === order.orderNumber ? 'Updating...' : 'Accept'}
                             </button>
                           )}
                           {order.orderStatus === 'ACCEPTED' && (
                             <button
                               onClick={() => handleStatusChange(order.orderNumber, 'PREPARING')}
-                              className="text-xs font-bold bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg hover:bg-amber-100"
+                              disabled={updatingOrder === order.orderNumber}
+                              className="text-xs font-bold bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg hover:bg-amber-100 disabled:opacity-50"
                             >
                               Prepare
                             </button>
@@ -215,7 +234,8 @@ export default function AdminOrdersPage() {
                           {order.orderStatus === 'PREPARING' && (
                             <button
                               onClick={() => handleStatusChange(order.orderNumber, 'READY')}
-                              className="text-xs font-bold bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg hover:bg-emerald-100"
+                              disabled={updatingOrder === order.orderNumber}
+                              className="text-xs font-bold bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg hover:bg-emerald-100 disabled:opacity-50"
                             >
                               Ready
                             </button>
@@ -223,7 +243,8 @@ export default function AdminOrdersPage() {
                           {order.orderStatus === 'READY' && (
                             <button
                               onClick={() => handleStatusChange(order.orderNumber, 'COMPLETED')}
-                              className="text-xs font-bold bg-[#18181b] text-white px-2.5 py-1 rounded-lg hover:bg-zinc-800"
+                              disabled={updatingOrder === order.orderNumber}
+                              className="text-xs font-bold bg-[#18181b] text-white px-2.5 py-1 rounded-lg hover:bg-zinc-800 disabled:opacity-50"
                             >
                               Complete
                             </button>

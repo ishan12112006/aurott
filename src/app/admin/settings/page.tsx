@@ -165,6 +165,11 @@ export default function AdminSettingsPage() {
                 UPI ID
                 <input value={settings.upiId} onChange={(e) => updateField('upiId', e.target.value)} className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm font-medium text-zinc-900 focus:outline-none focus:border-[#e8959d]" />
               </label>
+
+              <label className="block text-xs font-bold text-zinc-700">
+                Copyright Text
+                <input value={settings.copyrightText} onChange={(e) => updateField('copyrightText', e.target.value)} placeholder="Ishan Panwar. All rights reserved." className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm font-medium text-zinc-900 focus:outline-none focus:border-[#e8959d]" />
+              </label>
             </div>
 
             <label className="block text-xs font-bold text-zinc-700">

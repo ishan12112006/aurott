@@ -92,6 +92,8 @@ CREATE TABLE IF NOT EXISTS public.cafe_settings (
   upi_id TEXT DEFAULT 'ottcafe@upi',
   pickup_instructions TEXT DEFAULT 'Pick up your order fresh and hot at the OTT Cafe counter inside campus.',
   is_accepting_orders BOOLEAN DEFAULT TRUE NOT NULL,
+  copyright_text TEXT DEFAULT 'Ishan Panwar. All rights reserved.',
+  logo_url TEXT,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   CONSTRAINT single_row CHECK (id = 1)
 );
@@ -123,6 +125,21 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- RLS POLICIES
+
+-- Make this script safe to run again after a partial or completed setup.
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Anyone can view active categories" ON public.categories;
+DROP POLICY IF EXISTS "Admin can modify categories" ON public.categories;
+DROP POLICY IF EXISTS "Anyone can view menu items" ON public.menu_items;
+DROP POLICY IF EXISTS "Admin can modify menu items" ON public.menu_items;
+DROP POLICY IF EXISTS "Public can insert orders" ON public.orders;
+DROP POLICY IF EXISTS "Customers can view their orders" ON public.orders;
+DROP POLICY IF EXISTS "Admin can update orders" ON public.orders;
+DROP POLICY IF EXISTS "Public can insert order items" ON public.order_items;
+DROP POLICY IF EXISTS "Anyone can view order items" ON public.order_items;
+DROP POLICY IF EXISTS "Admin can update order items" ON public.order_items;
+DROP POLICY IF EXISTS "Public can view cafe settings" ON public.cafe_settings;
+DROP POLICY IF EXISTS "Admin can update cafe settings" ON public.cafe_settings;
 
 -- Profiles: Users can read own profile; Admin can read all
 CREATE POLICY "Users can view own profile" ON public.profiles
@@ -163,5 +180,23 @@ CREATE POLICY "Admin can update cafe settings" ON public.cafe_settings
   FOR ALL USING (public.is_admin());
 
 -- ENABLE SUPABASE REALTIME
-ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.menu_items;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'orders'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'menu_items'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.menu_items;
+  END IF;
+END $$;
+
+-- Additive migration for existing installations
+ALTER TABLE public.cafe_settings ADD COLUMN IF NOT EXISTS copyright_text TEXT DEFAULT 'Ishan Panwar. All rights reserved.';
+ALTER TABLE public.cafe_settings ADD COLUMN IF NOT EXISTS logo_url TEXT;

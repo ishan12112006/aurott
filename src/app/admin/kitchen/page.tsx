@@ -55,7 +55,8 @@ export default function KitchenKDSPage() {
   const handleUpdate = async (orderNumber: string, nextStatus: OrderStatus) => {
     setUpdatingId(orderNumber);
     try {
-      await updateOrderStatus(orderNumber, nextStatus);
+      const updated = await updateOrderStatus(orderNumber, nextStatus);
+      if (!updated) throw new Error('The order could not be updated. Please reload and try again.');
       await loadOrders();
     } catch (e) {
       console.error(e);

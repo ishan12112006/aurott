@@ -88,6 +88,7 @@ export interface CafeSettings {
   upiId: string;
   pickupInstructions: string;
   isAcceptingOrders: boolean;
+  copyrightText: string;
   logoUrl?: string;
 }
 

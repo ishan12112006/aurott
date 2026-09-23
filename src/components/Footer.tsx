@@ -133,7 +133,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
-          <p>© {new Date().getFullYear()} {siteSettings.cafeName}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {siteSettings.copyrightText}</p>
           <div className="flex items-center gap-4">
             <span className="text-[11px] text-zinc-400">{siteSettings.cafeName} • {siteSettings.campus}</span>
           </div>
